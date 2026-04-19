@@ -3,6 +3,37 @@
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
+.toggle {
+  width: 50px;
+  height: 26px;
+  background: #ccc;
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+}
+
+.toggle::after {
+  content: "";
+  width: 22px;
+  height: 22px;
+  background: white;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.toggle.active {
+  background: #4caf50;
+}
+
+.toggle.active::after {
+  left: 26px;
+}
+</style>
+
+<style>
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
@@ -234,6 +265,14 @@
     <button class="btn-ghost" onclick="showScreen('home')">← Back to Menu</button>
   </div>
 </div>
+
+>
+
+<div class="item" data-correct="true">Correct</div>
+
+<div class="item" data-correct="false">Wrong</div>
+
+<div class="toggle" id="wrongToggle"></div>
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
@@ -822,6 +861,36 @@ function showResults(){
   updateHomeStats();
   showScreen('results');
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+
+  const toggle = document.getElementById("wrongToggle");
+
+  const items = document.querySelectorAll(".item");
+
+  let isActive = false;
+
+  toggle.addEventListener("click", function () {
+
+    isActive = !isActive;
+
+    toggle.classList.toggle("active", isActive);
+
+    items.forEach(item => {
+
+      const isCorrect = item.dataset.correct === "true";
+
+      if (isActive && isCorrect) {
+
+        item.style.display = "none";
+
+      } else {
+
+        item.style.display = "block";
+      }
+    });
+  });
+});
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INIT
