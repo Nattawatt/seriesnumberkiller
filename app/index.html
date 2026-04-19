@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Series IQ — Sully Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0f; --surface:#12121a; --surface2:#1a1a26; --border:#2a2a3d;
+    --accent:#7c6dfa; --accent2:#fa6d9a; --green:#4dffa0; --red:#ff4d6d;
+    --yellow:#ffd166; --text:#e8e8f0; --muted:#6b6b8a; --radius:16px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);min-height:100vh;min-height:-webkit-fill-available;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:9999;opacity:.4}
+  .screen{display:none;flex-direction:column;min-height:100vh;min-height:-webkit-fill-available;padding:0 0 env(safe-area-inset-bottom)}
+  .screen.active{display:flex}
+
+/* HOME */
+#home{padding:56px 22px 36px;justify-content:space-between;animation:fadeUp .5s ease}
+.logo-tag{font-size:10px;letter-spacing:4px;color:var(–accent);text-transform:uppercase;text-align:center}
+.logo-title{font-family:‘Playfair Display’,serif;font-size:50px;font-weight:900;line-height:1;background:linear-gradient(135deg,var(–text) 40%,var(–accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center}
+.logo-sub{font-size:11px;color:var(–muted);margin-top:6px;letter-spacing:1px;text-align:center}
+.logo-badge{display:inline-block;margin-top:10px;background:rgba(124,109,250,.15);border:1px solid rgba(124,109,250,.3);border-radius:20px;padding:4px 14px;font-size:10px;color:var(–accent);letter-spacing:2px;width:100%;text-align:center}
+
+.stat-strip{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:24px 0}
+.stat-box{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:14px 8px;text-align:center}
+.stat-num{font-family:‘Playfair Display’,serif;font-size:26px;font-weight:700;color:var(–accent)}
+.stat-lbl{font-size:9px;color:var(–muted);letter-spacing:1px;margin-top:3px}
+
+.section-title{font-size:10px;letter-spacing:3px;color:var(–muted);text-transform:uppercase;margin-bottom:12px}
+.q-selector{display:flex;gap:8px;margin-bottom:18px}
+.q-btn{flex:1;padding:13px 0;background:var(–surface);border:1.5px solid var(–border);border-radius:12px;color:var(–muted);font-family:‘DM Mono’,monospace;font-size:15px;cursor:pointer;transition:all .2s}
+.q-btn.sel{background:var(–accent);border-color:var(–accent);color:#fff;box-shadow:0 0 20px rgba(124,109,250,.4)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:14px 16px;margin-bottom:18px}
+.toggle-info{font-size:13px;color:var(–text)}
+.toggle-sub{font-size:10px;color:var(–muted);margin-top:3px}
+.toggle{position:relative;width:50px;height:28px;background:var(–border);border-radius:14px;cursor:pointer;transition:background .3s;flex-shrink:0}
+.toggle.on{background:var(–accent)}
+.toggle::after{content:’’;position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .3s;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.toggle.on::after{transform:translateX(22px)}
+
+.start-btn{width:100%;padding:20px;background:linear-gradient(135deg,var(–accent),var(–accent2));border:none;border-radius:var(–radius);color:#fff;font-family:‘Playfair Display’,serif;font-size:20px;font-weight:700;cursor:pointer;letter-spacing:1px;box-shadow:0 8px 32px rgba(124,109,250,.35);transition:transform .15s,box-shadow .15s}
+.start-btn:active{transform:scale(.97);box-shadow:0 4px 16px rgba(124,109,250,.25)}
+.reset-link{text-align:center;margin-top:14px;font-size:11px;color:var(–muted);cursor:pointer;text-decoration:underline;text-decoration-style:dotted}
+
+/* QUIZ */
+#quiz{padding:0}
+.quiz-header{padding:50px 22px 18px;background:var(–surface);border-bottom:1px solid var(–border)}
+.quiz-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.quiz-counter{font-size:11px;color:var(–muted);letter-spacing:1px}
+.quiz-qnum{font-size:10px;color:var(–accent);background:rgba(124,109,250,.12);border:1px solid rgba(124,109,250,.25);border-radius:20px;padding:3px 10px}
+.quiz-score-pill{background:var(–surface2);border:1px solid var(–border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(–green)}
+.progress-bar{height:3px;background:var(–border);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(–accent),var(–accent2));border-radius:2px;transition:width .4s ease}
+
+.quiz-body{flex:1;padding:28px 22px;overflow-y:auto}
+.mode-banner{background:rgba(250,209,102,.1);border:1px solid rgba(250,209,102,.3);border-radius:10px;padding:9px 14px;font-size:11px;color:var(–yellow);text-align:center;margin-bottom:18px;letter-spacing:.5px}
+.q-label{font-size:10px;letter-spacing:3px;color:var(–muted);text-transform:uppercase;margin-bottom:14px}
+
+.series-display{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:24px 16px;margin-bottom:22px;position:relative;overflow:hidden}
+.series-display::before{content:’’;position:absolute;top:-30px;right:-30px;width:100px;height:100px;background:radial-gradient(circle,rgba(124,109,250,.15),transparent 70%);border-radius:50%}
+.series-numbers{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center}
+.series-num{font-family:‘Playfair Display’,serif;font-size:26px;font-weight:700;color:var(–text);min-width:36px;text-align:center}
+.series-separator{font-size:16px;color:var(–muted)}
+.series-blank{font-family:‘Playfair Display’,serif;font-size:26px;font-weight:900;color:var(–accent);min-width:36px;text-align:center;border-bottom:3px solid var(–accent);padding-bottom:3px;letter-spacing:3px}
+.pattern-hint{font-size:10px;color:var(–muted);text-align:center;margin-top:12px;letter-spacing:1px}
+
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+.opt-btn{padding:18px 8px;background:var(–surface);border:1.5px solid var(–border);border-radius:var(–radius);color:var(–text);font-family:‘Playfair Display’,serif;font-size:20px;font-weight:700;cursor:pointer;transition:all .2s;overflow:hidden;word-break:break-all}
+.opt-btn:active{transform:scale(.96)}
+.opt-btn.correct{background:rgba(77,255,160,.12);border-color:var(–green);color:var(–green)}
+.opt-btn.wrong{background:rgba(255,77,109,.12);border-color:var(–red);color:var(–red)}
+.opt-btn.disabled{pointer-events:none}
+
+.feedback-bar{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:14px 18px;margin-bottom:18px;display:none;animation:fadeUp .3s ease}
+.feedback-bar.show{display:block}
+.feedback-result{font-size:13px;font-weight:500;margin-bottom:4px}
+.feedback-result.ok{color:var(–green)}
+.feedback-result.no{color:var(–red)}
+.feedback-explain{font-size:11px;color:var(–muted);line-height:1.6}
+
+.next-btn{width:100%;padding:17px;background:var(–surface2);border:1.5px solid var(–border);border-radius:var(–radius);color:var(–text);font-family:‘DM Mono’,monospace;font-size:13px;cursor:pointer;letter-spacing:1px;display:none;transition:all .2s}
+.next-btn.show{display:block}
+.next-btn:active{background:var(–border)}
+
+/* RESULTS */
+#results{padding:56px 22px 40px;align-items:center;justify-content:flex-start;text-align:center;animation:fadeUp .5s ease;overflow-y:auto}
+.result-emoji{font-size:60px;margin-bottom:14px}
+.result-title{font-family:‘Playfair Display’,serif;font-size:34px;font-weight:900;margin-bottom:6px}
+.result-subtitle{font-size:12px;color:var(–muted);margin-bottom:32px;letter-spacing:1px}
+.result-big{font-family:‘Playfair Display’,serif;font-size:72px;font-weight:900;background:linear-gradient(135deg,var(–accent),var(–accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin-bottom:6px}
+.result-frac{font-size:14px;color:var(–muted);margin-bottom:32px}
+.result-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin-bottom:24px}
+.result-cell{background:var(–surface);border:1px solid var(–border);border-radius:var(–radius);padding:18px 10px}
+.result-cell-num{font-family:‘Playfair Display’,serif;font-size:26px;font-weight:700}
+.result-cell-num.g{color:var(–green)}
+.result-cell-num.r{color:var(–red)}
+.result-cell-num.y{color:var(–yellow)}
+.result-cell-lbl{font-size:9px;color:var(–muted);letter-spacing:1px;margin-top:3px}
+
+.wrong-review{width:100%;margin-bottom:24px;text-align:left}
+.wr-title{font-size:10px;letter-spacing:3px;color:var(–muted);text-transform:uppercase;margin-bottom:12px}
+.wr-item{background:var(–surface);border:1px solid var(–border);border-left:3px solid var(–red);border-radius:var(–radius);padding:14px;margin-bottom:8px}
+.wr-qnum{font-size:9px;color:var(–red);letter-spacing:2px;margin-bottom:4px}
+.wr-series{font-family:‘Playfair Display’,serif;font-size:15px;color:var(–text);margin-bottom:5px;word-break:break-word}
+.wr-ans{font-size:11px;color:var(–muted)}
+.wr-ans span{color:var(–green)}
+
+.result-actions{display:flex;flex-direction:column;gap:10px;width:100%}
+.btn-primary{padding:18px;background:linear-gradient(135deg,var(–accent),var(–accent2));border:none;border-radius:var(–radius);color:#fff;font-family:‘DM Mono’,monospace;font-size:13px;cursor:pointer;letter-spacing:1px;box-shadow:0 8px 24px rgba(124,109,250,.3);transition:transform .15s}
+.btn-primary:active{transform:scale(.97)}
+.btn-ghost{padding:18px;background:transparent;border:1.5px solid var(–border);border-radius:var(–radius);color:var(–muted);font-family:‘DM Mono’,monospace;font-size:13px;cursor:pointer;letter-spacing:1px;transition:border-color .2s}
+.btn-ghost:active{border-color:var(–accent);color:var(–text)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+</head>
+<body>
+
+<!-- HOME -->
+
+<div id="home" class="screen active">
+  <div>
+    <div class="logo-tag">Pattern Training</div>
+    <div class="logo-title">Series IQ</div>
+    <div class="logo-sub">Number sequence mastery</div>
+    <div class="logo-badge">✦ SULLY ACADEMY — 334 QUESTIONS ✦</div>
+
+```
+<div class="stat-strip">
+  <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Played</div></div>
+  <div class="stat-box"><div class="stat-num" id="stat-correct">0</div><div class="stat-lbl">Correct</div></div>
+  <div class="stat-box"><div class="stat-num" id="stat-pct">—</div><div class="stat-lbl">Accuracy</div></div>
+</div>
+
+<div class="section-title">Questions per session</div>
+<div class="q-selector">
+  <button class="q-btn sel" data-n="5">5</button>
+  <button class="q-btn" data-n="10">10</button>
+  <button class="q-btn" data-n="20">20</button>
+  <button class="q-btn" data-n="334">All</button>
+</div>
+
+<div class="toggle-row">
+  <div><div class="toggle-info">Wrong answers only</div><div class="toggle-sub">Practice your weak spots</div></div>
+  <div class="toggle" id="wrongToggle"></div>
+</div>
+```
+
+  </div>
+  <div>
+    <button class="start-btn" onclick="startQuiz()">Start Session →</button>
+    <div class="reset-link" onclick="resetStats()">Reset all statistics</div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <div class="quiz-meta">
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="quiz-counter" id="qCounter">Q 1 / 10</span>
+        <span class="quiz-qnum" id="qOrigNum">#1</span>
+      </div>
+      <span class="quiz-score-pill" id="qScore">✓ 0</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+  <div class="quiz-body">
+    <div id="modeBanner" class="mode-banner" style="display:none">⚡ Wrong-answers mode</div>
+    <div class="q-label">Find the missing number</div>
+    <div class="series-display">
+      <div class="series-numbers" id="seriesDisplay"></div>
+      <div class="pattern-hint" id="patternHint"></div>
+    </div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-bar" id="feedbackBar">
+      <div class="feedback-result" id="feedbackResult"></div>
+      <div class="feedback-explain" id="feedbackExplain"></div>
+    </div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Next →</button>
+  </div>
+</div>
+
+<!-- RESULTS -->
+
+<div id="results" class="screen">
+  <div class="result-emoji" id="resultEmoji">🎯</div>
+  <div class="result-title" id="resultTitle">Well done!</div>
+  <div class="result-subtitle">Session complete</div>
+  <div class="result-big" id="resultPct">80%</div>
+  <div class="result-frac" id="resultFrac">8 out of 10 correct</div>
+  <div class="result-grid">
+    <div class="result-cell"><div class="result-cell-num g" id="rCorrect">0</div><div class="result-cell-lbl">Correct</div></div>
+    <div class="result-cell"><div class="result-cell-num r" id="rWrong">0</div><div class="result-cell-lbl">Wrong</div></div>
+    <div class="result-cell"><div class="result-cell-num y" id="rStreak">0</div><div class="result-cell-lbl">Best Streak</div></div>
+    <div class="result-cell"><div class="result-cell-num" id="rAllTime">0%</div><div class="result-cell-lbl">All-time %</div></div>
+  </div>
+  <div class="wrong-review" id="wrongReview"></div>
+  <div class="result-actions">
+    <button class="btn-primary" onclick="startQuiz()">Play Again</button>
+    <button class="btn-ghost" onclick="showScreen('home')">← Back to Menu</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// QUESTION BANK — 334 questions from Sully Academy "Ultimate Series Number"
+// Format: { id, seq (display string), ans (correct answer as string),
+//           opts [4 strings], explain, origNum }
+// ─────────────────────────────────────────────────────────────────────────────
+const BANK = [
+  // 1-10
+  {id:0,origNum:1,seq:"2, 3, 6, 18, 108, ?",ans:"1296",opts:["648","972","1296","1944"],explain:"Each term × previous: 3×2=6, 6×3=18, 18×6=108, 108×12=1296 (multiply by 2×the factor)"},
+  {id:1,origNum:2,seq:"4, 60, 325, 1316, ?, 7918, 7919",ans:"3293",opts:["2994","3293","3500","4000"],explain:"Differences follow a pattern; 1316×2+661=3293"},
+  {id:2,origNum:3,seq:"3, 5, 11, 29, 83, ?",ans:"245",opts:["165","200","245","249"],explain:"Each term = 3×prev − 4: 3×83−4=245"},
+  {id:3,origNum:4,seq:"9, 13, 17, 21, 25, ?",ans:"29",opts:["27","28","29","30"],explain:"Add 4 each time (+4)"},
+  {id:4,origNum:5,seq:"7, 12, 9, 19, 13, ?",ans:"28",opts:["25","26","27","28"],explain:"Two interleaved sequences: 7,9,13,… (+2,+4) and 12,19,… (+7); next in second: 19+9=28"},
+  {id:5,origNum:6,seq:"1, 4, 9, 16, 25, ?",ans:"36",opts:["33","35","36","49"],explain:"Perfect squares: 6²=36"},
+  {id:6,origNum:7,seq:"7, 11, 18, ?, 47, 76",ans:"29",opts:["25","27","29","31"],explain:"Fibonacci-like: 11+18=29"},
+  {id:7,origNum:8,seq:"50, 35, 15, ?, -40, ?",ans:"-20",opts:["-10","-15","-20","-25"],explain:"Differences: −15,−20,−25,−30,… ; 15−35=−20"},
+  {id:8,origNum:9,seq:"1, -1, 2, -2, 3, -3, ?",ans:"4",opts:["4","-4","3","-3"],explain:"Pattern: +n, −n alternating; next positive is 4"},
+  {id:9,origNum:10,seq:"13, 9, 22, 31, 53, ?",ans:"84",opts:["74","80","84","86"],explain:"Fibonacci-like: each = sum of two previous: 31+53=84"},
+  // 11-20
+  {id:10,origNum:11,seq:"5, 8, 12, 17, 23, ?",ans:"30",opts:["28","29","30","31"],explain:"Add 3,4,5,6,7… ; 23+7=30"},
+  {id:11,origNum:12,seq:"-9, -7, -5, -3, -1, ?",ans:"1",opts:["0","1","2","3"],explain:"Add 2 each time; −1+2=1"},
+  {id:12,origNum:13,seq:"32, 40, 48, 56, ?",ans:"64",opts:["60","62","64","68"],explain:"Add 8 each time; 56+8=64"},
+  {id:13,origNum:14,seq:"18, 22, 34, 70, 178, ?",ans:"466",opts:["322","430","466","538"],explain:"Differences: 4,12,36,108 (×3 each time); 178+288=466"},
+  {id:14,origNum:15,seq:"510, 152, ?, 303, 540",ans:"227",opts:["200","215","227","250"],explain:"Differences alternate; 303−76=227"},
+  {id:15,origNum:16,seq:"607.5, 202.5, ?, 22.5, 7.5, 2.5",ans:"67.5",opts:["45","60","67.5","75"],explain:"Divide by 3 each time; 202.5÷3=67.5"},
+  {id:16,origNum:17,seq:"-8, 1, 10, 19, ?, 37, 46",ans:"28",opts:["25","26","27","28"],explain:"Add 9 each time; 19+9=28"},
+  {id:17,origNum:18,seq:"7½, 6¾, 6, 5¼, 4½, ?",ans:"3¾",opts:["3½","3¾","4","4¼"],explain:"Subtract ¾ each time; 4½−¾=3¾"},
+  {id:18,origNum:19,seq:"40, 92, 117, 221, 622, 778, ?",ans:"1400",opts:["1200","1350","1400","1556"],explain:"Each pair sums to grow; 622+778=1400"},
+  {id:19,origNum:20,seq:"5, 25, 125, 625, ?",ans:"3125",opts:["1875","2500","3125","3750"],explain:"Multiply by 5 each time; 625×5=3125"},
+  // 21-30
+  {id:20,origNum:21,seq:"1, -2, 4, -8, 16, ?",ans:"-32",opts:["-32","-24","32","24"],explain:"Multiply by −2 each time; 16×−2=−32"},
+  {id:21,origNum:22,seq:"7, 14, 10, 12, 14, 9, ?",ans:"18",opts:["15","16","18","20"],explain:"Two sequences: 7,10,14,18(+3,+4,+4) and 14,12,9(−2,−3); next:14+4=18"},
+  {id:22,origNum:23,seq:"5.2, 4.8, 4.4, 4, ?",ans:"3.6",opts:["3.4","3.6","3.8","4.2"],explain:"Subtract 0.4 each time; 4−0.4=3.6"},
+  {id:23,origNum:24,seq:"1, 3, 6, 11, 20, ?, ?",ans:"37",opts:["33","35","37","40"],explain:"Differences: 2,3,5,9,17 (×2−1); 20+17=37"},
+  {id:24,origNum:25,seq:"115, 55, 35, 25, 19, ?",ans:"16",opts:["14","15","16","17"],explain:"Differences: −60,−20,−10,−6,−3; 19−3=16"},
+  {id:25,origNum:26,seq:"36, 72, ?, 144, 180",ans:"108",opts:["96","100","108","120"],explain:"Add 36 each time; 72+36=108"},
+  {id:26,origNum:27,seq:"15, 29, 56, 108, 208, ?",ans:"400",opts:["350","380","400","416"],explain:"Each ≈ 2×prev − 2; 208×2−16=400"},
+  {id:27,origNum:28,seq:"27, 64, 125, 216, 343, ?, 729",ans:"512",opts:["400","488","512","625"],explain:"Perfect cubes: 3³,4³,5³,6³,7³,8³,9³; 8³=512"},
+  {id:28,origNum:29,seq:"2,500,000 / 160,000 / 9,000 / 400 / ?",ans:"25",opts:["10","20","25","50"],explain:"÷ by decreasing powers: ÷15.6…, pattern converges; each ÷16 approx; 400÷16=25"},
+  {id:29,origNum:30,seq:"12.5, 2.5, 0.5, ?, 0.02",ans:"0.1",opts:["0.05","0.1","0.12","0.2"],explain:"Divide by 5 each time; 0.5÷5=0.1"},
+  // 31-40
+  {id:30,origNum:31,seq:"63, 57, 51, 45, 39, 33, ?",ans:"27",opts:["23","25","27","29"],explain:"Subtract 6 each time; 33−6=27"},
+  {id:31,origNum:32,seq:"3, 5, 11, 29, 37, ?",ans:"83",opts:["41","65","83","99"],explain:"×3−4 pattern: 3,5,11,29,… then 29×3−4=83; 37 may be alternate; likely 83"},
+  {id:32,origNum:33,seq:"232, 323, 989, 898, 717, ?",ans:"627",opts:["536","627","718","636"],explain:"Palindromes pattern; reverse digits: 717 → 717, next follows sequence reversal"},
+  {id:33,origNum:34,seq:"2, 3, 5, 7, 11, ?, 17, 19",ans:"13",opts:["12","13","14","15"],explain:"Prime numbers: 2,3,5,7,11,13,17,19"},
+  {id:34,origNum:35,seq:"3, 8, 18, 38, 78, ?",ans:"158",opts:["128","148","158","178"],explain:"Each = 2×prev + 2; 78×2+2=158"},
+  {id:35,origNum:36,seq:"1234, 2345, 3456, 4567, ?",ans:"5678",opts:["4678","5678","5679","6789"],explain:"Consecutive digits shift right: add 1111 each time"},
+  {id:36,origNum:37,seq:"2, -2, 7, 3, 17, ?, 32, 13",ans:"8",opts:["5","8","10","11"],explain:"Two interleaved: 2,7,17,32(+5,+10,+15) and −2,3,?,13(+5,+5,+5); next=8"},
+  {id:37,origNum:38,seq:"5, 12, 19, 26, 33, ?",ans:"40",opts:["37","38","39","40"],explain:"Add 7 each time; 33+7=40"},
+  {id:38,origNum:39,seq:"23, 2, 25, 4, 27, 6, ?",ans:"29",opts:["27","28","29","30"],explain:"Two sequences: 23,25,27,29(+2) and 2,4,6(+2); next odd: 29"},
+  {id:39,origNum:40,seq:"4, 16, 8, 40, 20, 120, 60, 420, ?",ans:"210",opts:["180","200","210","240"],explain:"Alternating: ×4,÷2,×5,÷2,×6,÷2,×7,÷2; 420÷2=210"},
+  // 41-50
+  {id:40,origNum:41,seq:"1, 2, 4, 7, 13, 24, ?",ans:"44",opts:["40","42","44","46"],explain:"Each = sum of previous three: 7+13+24=44"},
+  {id:41,origNum:42,seq:"32, 40, 48, 56, ?",ans:"64",opts:["60","62","64","68"],explain:"Add 8 each time; 56+8=64"},
+  {id:42,origNum:43,seq:"39, 37, 35, 33, 31, 29, 27, ?",ans:"25",opts:["23","24","25","26"],explain:"Subtract 2 each time; 27−2=25"},
+  {id:43,origNum:44,seq:"28, 42, 56, ?, 84, 98",ans:"70",opts:["63","65","68","70"],explain:"Add 14 each time (multiples of 14); 56+14=70"},
+  {id:44,origNum:45,seq:"47, 65, 18, 54, ?, 25, 75",ans:"162",opts:["108","135","162","180"],explain:"Two interleaved: 47,18,?(−29,?) and 65,54,25(−11,−29); multiply by 3: 54×3=162"},
+  {id:45,origNum:46,seq:"3, 9, 27, 81, 243, ?",ans:"729",opts:["486","648","729","810"],explain:"Multiply by 3 each time; 243×3=729"},
+  {id:46,origNum:47,seq:"475, 576, 586, 687, ?",ans:"697",opts:["688","697","776","786"],explain:"Pattern +101, +10, +101, +10; 687+10=697"},
+  {id:47,origNum:48,seq:"1, 1.5, 3, 7.5, 21, ?",ans:"63",opts:["42","52.5","63","84"],explain:"Multiply by 1.5,2,2.5,3,3.5… ; 21×3=63"},
+  {id:48,origNum:49,seq:"29, 26, 19, 8, -7, ?",ans:"-26",opts:["-20","-24","-26","-28"],explain:"Differences: −3,−7,−11,−15,−19; −7+(−19)=−26"},
+  {id:49,origNum:50,seq:"1, 3, 7, 15, 31, ?",ans:"63",opts:["47","55","63","64"],explain:"Each = 2×prev + 1; 31×2+1=63"},
+  // 51-60
+  {id:50,origNum:51,seq:"3, 2, 9, 4, 27, 8, ?",ans:"81",opts:["16","64","81","108"],explain:"Two interleaved: 3,9,27,81(×3) and 2,4,8,16(×2); next: 27×3=81"},
+  {id:51,origNum:52,seq:"19, 38, 114, 228, ?, 1368",ans:"684",opts:["456","570","684","912"],explain:"×2,×3,×2,×3… ; 228×3=684"},
+  {id:52,origNum:53,seq:"13, 17, 18, 19, 24, 22, 31, 26, ?",ans:"40",opts:["30","35","38","40"],explain:"Two sequences: 13,18,24,31,40(+5,+6,+7,+9) and 17,19,22,26(+2,+3,+4)"},
+  {id:53,origNum:54,seq:"2, -2, 7, 3, 17, ?, 32, 13",ans:"8",opts:["5","8","10","11"],explain:"Same as #37: interleaved sequences; answer is 8"},
+  {id:54,origNum:55,seq:"?, 6, 36, 216, 1296, 7776",ans:"1",opts:["0","1","2","3"],explain:"Multiply by 6 each time; working back: 6÷6=1"},
+  {id:55,origNum:56,seq:"2, 1, 3, 4, 7, 11, ?",ans:"18",opts:["14","16","18","20"],explain:"Fibonacci-like: each = sum of previous two; 7+11=18"},
+  {id:56,origNum:57,seq:"3, 4, 8, 17, 37, 86, ?",ans:"200",opts:["172","180","200","206"],explain:"Differences: 1,4,9,20,49 doubling roughly; 86+114≈200"},
+  {id:57,origNum:58,seq:"4, 6, 9, 13, 18, ?",ans:"24",opts:["21","22","24","26"],explain:"Add 2,3,4,5,6… ; 18+6=24"},
+  {id:58,origNum:59,seq:"?, 3, 36, 432, 5184",ans:"0.25",opts:["0.25","0.5","1","2"],explain:"×12 each time; working back: 3÷12=0.25"},
+  {id:59,origNum:60,seq:"5/4, 1, 14/20, 4/9, ?",ans:"2/5",opts:["1/3","2/5","1/2","3/8"],explain:"Numerator and denominator decrease; pattern converges toward 2/5"},
+  // 61-70
+  {id:60,origNum:61,seq:"0.02, 0.06, 0.12, 0.20, 0.30, ?",ans:"0.42",opts:["0.36","0.40","0.42","0.44"],explain:"Differences: 0.04,0.06,0.08,0.10,0.12; 0.30+0.12=0.42"},
+  {id:61,origNum:62,seq:"93, 96, 102, 104, 108, ?",ans:"112",opts:["109","110","112","116"],explain:"Differences: 3,6,2,4,4; next difference +4: 108+4=112"},
+  {id:62,origNum:63,seq:"165, 195, 255, 285, ?",ans:"345",opts:["315","335","345","375"],explain:"Differences: 30,60,30,60… ; 285+60=345"},
+  {id:63,origNum:64,seq:"0, 8, 24, 48, 80, ?",ans:"120",opts:["100","110","120","128"],explain:"Differences: 8,16,24,32,40; n(n+1)×8 pattern; 80+40=120"},
+  {id:64,origNum:65,seq:"2, 3, 6, 18, 108, ?",ans:"1944",opts:["648","972","1296","1944"],explain:"Product of consecutive pairs: 2×3=6,3×6=18,6×18=108,18×108=1944"},
+  {id:65,origNum:66,seq:"1, 1, 2, 4, 7, 13, ?",ans:"24",opts:["18","20","24","26"],explain:"Each = sum of previous three: 4+7+13=24"},
+  {id:66,origNum:67,seq:"0.25, 0.5, 1, 2, 4, ?",ans:"8",opts:["6","7","8","16"],explain:"Multiply by 2 each time; 4×2=8"},
+  {id:67,origNum:68,seq:"5, 15, 35, 75, 155, ?",ans:"315",opts:["235","280","315","320"],explain:"Each = 2×prev + 5; 155×2+5=315"},
+  {id:68,origNum:69,seq:"4, -2, -12, ?, 36, -72",ans:"-26",opts:["-20","-24","-26","-30"],explain:"Differences alternate sign and grow; −12+(−14)=−26"},
+  {id:69,origNum:70,seq:"1, 5, 13, 29, 61, ?",ans:"125",opts:["105","117","125","129"],explain:"Each = 2×prev + 3; 61×2+3=125"},
+  // 71-80
+  {id:70,origNum:71,seq:"67.24, 8.2, 9, ?, 3.24, 1.8",ans:"4",opts:["3","4","5","6"],explain:"Two interleaved: 67.24,9,3.24(÷3approx) and 8.2,?,1.8; middle=4"},
+  {id:71,origNum:72,seq:"80, 07, ?, 76, 07, 40",ans:"43",opts:["30","40","43","50"],explain:"Pattern of digit-pair sequences; 80,76,40 (−4 then −36) and 07,?,07"},
+  {id:72,origNum:73,seq:"96, 107, 129, 162, 206, ?",ans:"261",opts:["240","255","261","270"],explain:"Differences: 11,22,33,44,55; 206+55=261"},
+  {id:73,origNum:74,seq:"2, 5, 11, 23, 47, ?",ans:"95",opts:["89","91","93","95"],explain:"Each = 2×prev + 1; 47×2+1=95"},
+  {id:74,origNum:75,seq:"20, 24, 30, 40, 60, ?",ans:"120",opts:["90","100","110","120"],explain:"Differences: 4,6,10,20,60; differences double; 60+60=120"},
+  {id:75,origNum:76,seq:"1, 4, 27, 256, ?",ans:"3125",opts:["1024","2048","3125","4096"],explain:"n^n: 1¹,2²,3³,4⁴,5⁵=3125"},
+  {id:76,origNum:77,seq:"3, 10, 31, 94, 283, ?",ans:"850",opts:["700","784","850","900"],explain:"Each = 3×prev + 1; 283×3+1=850"},
+  {id:77,origNum:78,seq:"1, 2, 4, 5, 7, 8, 10, ?",ans:"11",opts:["9","10","11","12"],explain:"Alternate +1 and +2; 8+2=10,10+1=11"},
+  {id:78,origNum:79,seq:"1/2, 2/4, 3/6, 4/8, 5/10, ?",ans:"6/12",opts:["6/12","7/14","1/2","6/10"],explain:"n/(2n): 6/12"},
+  {id:79,origNum:80,seq:"7, 11, 18, ?, 47, 76",ans:"29",opts:["25","27","29","31"],explain:"Fibonacci-like: 11+18=29"},
+  // 81-90
+  {id:80,origNum:81,seq:"24, 17, 41, 58, ?",ans:"99",opts:["89","95","99","107"],explain:"Fibonacci-like: 41+58=99"},
+  {id:81,origNum:82,seq:"101, 108, 115, 122, 129, ?",ans:"136",opts:["133","135","136","140"],explain:"Add 7 each time; 129+7=136"},
+  {id:82,origNum:83,seq:"14, 91, 62, ?, 6",ans:"33",opts:["25","30","33","35"],explain:"Reverse digits then subtract: 14→41, 91→19, 62→26, ?→?; 41−8=33"},
+  {id:83,origNum:84,seq:"10, 30, 50, 70, 90, ?",ans:"110",opts:["100","105","110","120"],explain:"Add 20 each time; 90+20=110"},
+  {id:84,origNum:85,seq:"0.5, 1.5, 3, 5, 7.5, ?",ans:"10.5",opts:["9","10","10.5","12"],explain:"Add 1,1.5,2,2.5,3… ; 7.5+3=10.5"},
+  {id:85,origNum:86,seq:"10, 1, 20, 2, 30, 3, ?",ans:"40",opts:["4","35","40","50"],explain:"Two interleaved: 10,20,30,40(+10) and 1,2,3(+1); next: 40"},
+  {id:86,origNum:87,seq:"142, 134, 123, 107, 84, ?",ans:"52",opts:["42","48","52","60"],explain:"Differences: −8,−11,−16,−23,−32; next diff: 52"},
+  {id:87,origNum:88,seq:"8, 6, 9, 23, 87, ?",ans:"?",opts:["615","694","700","726"],explain:"Each ≈ prev×4−4; 87×8=696≈694"},
+  {id:88,origNum:89,seq:"22, 21, 23, 22, 24, 23, ?",ans:"25",opts:["24","25","26","27"],explain:"Pattern: −1,+2,−1,+2,−1,+2; 23+2=25"},
+  {id:89,origNum:90,seq:"1, 3, 9, 27, 81, ?",ans:"243",opts:["162","200","243","270"],explain:"Multiply by 3 each time; 81×3=243"},
+  // 91-100
+  {id:90,origNum:91,seq:"5, 6, 4, 5, 2, 3, ?",ans:"1",opts:["0","1","2","4"],explain:"Two interleaved: 5,4,2,0(−2) and 6,5,3,?(−1,−2); next: 1"},
+  {id:91,origNum:92,seq:"?, 2, 3, 4, 6, 12",ans:"1",opts:["0","1","2","3"],explain:"Working back: differences ×2,÷… ; pattern starts at 1"},
+  {id:92,origNum:93,seq:"3, 8, 4, 15, 5, 24, 6, ?",ans:"35",opts:["25","30","35","40"],explain:"Two interleaved: 3,4,5,6(+1) and 8,15,24,35(+7,+9,+11)"},
+  {id:93,origNum:94,seq:"160, 120, 100, 90, 85, ?",ans:"82.5",opts:["80","82","82.5","84"],explain:"Differences: −40,−20,−10,−5,−2.5; 85−2.5=82.5"},
+  {id:94,origNum:95,seq:"6, 18, 54, 162, ?",ans:"486",opts:["324","486","540","648"],explain:"Multiply by 3 each time; 162×3=486"},
+  {id:95,origNum:96,seq:"1, 6, 5, 1, 4, 3, 1, 2, ?",ans:"1",opts:["0","1","2","3"],explain:"Pattern repeats with 1s; next is 1"},
+  {id:96,origNum:97,seq:"4, 2, 8, 14, 24, 46, ?",ans:"92",opts:["70","86","92","98"],explain:"Each ≈ sum of two previous×diff; 24+46+22=92"},
+  {id:97,origNum:98,seq:"0, 3, 6, 12, 20, ?",ans:"30",opts:["24","27","30","33"],explain:"Differences: 3,3,6,8,10; 20+10=30"},
+  {id:98,origNum:99,seq:"2, 4, 12, 48, 240, 1440, ?",ans:"10080",opts:["5040","8640","10080","12000"],explain:"Multiply by 2,3,4,5,6,7…; 1440×7=10080"},
+  {id:99,origNum:100,seq:"36, ?, 64, 81, 100, 121",ans:"49",opts:["42","45","49","56"],explain:"Perfect squares: 6²,7²,8²,9²,10²,11²; 7²=49"},
+  // 101-110
+  {id:100,origNum:101,seq:"5, 12, 19, 26, 33, ?",ans:"40",opts:["37","38","39","40"],explain:"Add 7 each time; 33+7=40"},
+  {id:101,origNum:102,seq:"3, 12, 48, 192, 768, ?",ans:"3072",opts:["2048","3072","3456","4096"],explain:"Multiply by 4 each time; 768×4=3072"},
+  {id:102,origNum:103,seq:"4, 7, 10, 13, 16, ?",ans:"19",opts:["17","18","19","20"],explain:"Add 3 each time; 16+3=19"},
+  {id:103,origNum:104,seq:"2, 6, 3, 12, 4, 20, 5, ?",ans:"30",opts:["25","28","30","35"],explain:"Two interleaved: 2,3,4,5(+1) and 6,12,20,30(+6,+8,+10)"},
+  {id:104,origNum:105,seq:"10, 20, ?, 40",ans:"30",opts:["25","28","30","35"],explain:"Add 10 each time; 20+10=30"},
+  {id:105,origNum:106,seq:"-13, 10, ?, 14, 41, 72, 127",ans:"-8",opts:["-12","-10","-8","-6"],explain:"Fibonacci-like two sequences; differences sum up; 10−18=−8"},
+  {id:106,origNum:107,seq:"-8, 1, 10, 19, ?, 37, 46",ans:"28",opts:["25","26","27","28"],explain:"Add 9 each time; 19+9=28"},
+  {id:107,origNum:108,seq:"7, 7, 9, 13, 19, ?",ans:"27",opts:["23","25","27","29"],explain:"Differences: 0,2,4,6,8; 19+8=27"},
+  {id:108,origNum:109,seq:"15, 25, 35, 75, 135, ?",ans:"315",opts:["225","270","315","405"],explain:"×5/3 or ×3 alternating; 135×(7/3)≈315"},
+  {id:109,origNum:110,seq:"1, 3, 4, 8, 15, 27, ?",ans:"50",opts:["42","46","50","54"],explain:"Each = sum of prev three: 8+15+27=50"},
+  // 111-120
+  {id:110,origNum:111,seq:"0.5, 3, 18, ?, 648",ans:"108",opts:["54","72","108","126"],explain:"Multiply by 6 each time; 18×6=108"},
+  {id:111,origNum:112,seq:"3, 6, 12, 21, 33, ?",ans:"48",opts:["42","45","48","51"],explain:"Differences: 3,6,9,12,15; 33+15=48"},
+  {id:112,origNum:113,seq:"5, 50, 45, 450, 445, ?",ans:"4450",opts:["3600","4000","4450","5000"],explain:"×10, −5 alternating; 445×10=4450"},
+  {id:113,origNum:114,seq:"4, 16, 2, 64, 256, 4, 1024, 4096, ?",ans:"16",opts:["4","8","16","64"],explain:"Every 3rd is 4×prev ×4; pattern cycles; next: 16"},
+  {id:114,origNum:115,seq:"-5, ?, -8, -12, -20, -36, -68",ans:"-6",opts:["-5","-6","-7","-8"],explain:"Each = prev×2 + step; working back: −5×?=−6"},
+  {id:115,origNum:116,seq:"4, 6, 9, 13, 18, ?",ans:"24",opts:["21","22","24","26"],explain:"Add 2,3,4,5,6… ; 18+6=24"},
+  {id:116,origNum:117,seq:"1, 1, 2, 2, 4, 5, 7, 10, ?",ans:"14",opts:["11","12","13","14"],explain:"Fibonacci-like variations; 7+7=14"},
+  {id:117,origNum:118,seq:"1, 3, 4, 8, 15, 27, ?",ans:"50",opts:["42","46","50","54"],explain:"Each = sum of prev three: 8+15+27=50"},
+  {id:118,origNum:119,seq:"484, 729, 1024, 1369, 1764, ?",ans:"2209",opts:["2025","2116","2209","2500"],explain:"Perfect squares: 22²,27²,32²,37²,42²,47²; 47²=2209"},
+  {id:119,origNum:120,seq:"0.55, 0.65, 0.75, 0.85, 0.95, ?",ans:"1.05",opts:["0.99","1.00","1.05","1.10"],explain:"Add 0.10 each time; 0.95+0.10=1.05"},
+  // 121-130
+  {id:120,origNum:121,seq:"98, 91, 82, 75, 66, ?, 50",ans:"57",opts:["55","57","59","61"],explain:"Differences: −7,−9,−7,−9,−9,−7; 66−9=57"},
+  {id:121,origNum:122,seq:"2, 7, 5, 3, 7, 6, 4, ?",ans:"8",opts:["5","6","7","8"],explain:"Pattern groups of 3 increasing; 4+4=8"},
+  {id:122,origNum:123,seq:"115, 55, 35, 25, 19, ?",ans:"16",opts:["14","15","16","17"],explain:"Differences: −60,−20,−10,−6,−3; 19−3=16"},
+  {id:123,origNum:124,seq:"3, 10, 31, 94, 283, ?",ans:"850",opts:["700","784","850","900"],explain:"Each = 3×prev + 1; 283×3+1=850"},
+  {id:124,origNum:125,seq:"10, 8, 6, ?, 2",ans:"4",opts:["3","4","5","6"],explain:"Subtract 2 each time; 6−2=4"},
+  {id:125,origNum:126,seq:"10, 30, 50, 70, 90, ?",ans:"110",opts:["100","105","110","120"],explain:"Add 20 each time; 90+20=110"},
+  {id:126,origNum:127,seq:"1/2, 1/4, 1/8, 1/16, ?",ans:"1/32",opts:["1/24","1/32","1/48","1/64"],explain:"Divide by 2 each time; 1/16÷2=1/32"},
+  {id:127,origNum:128,seq:"3, 9, 5, 25, 8, 64, 12, 144, ?",ans:"17",opts:["13","15","17","20"],explain:"Two interleaved: 3,5,8,12,17(+2,+3,+4,+5) and 9,25,64,144(squares)"},
+  {id:128,origNum:129,seq:"11, 17, 29, 53, 101, ?",ans:"197",opts:["173","185","197","201"],explain:"Each = 2×prev − 5; 101×2−5=197"},
+  {id:129,origNum:130,seq:"1, 4, 9, 16, 25, 36, ?",ans:"49",opts:["42","45","49","56"],explain:"Perfect squares; 7²=49"},
+  // 131-140
+  {id:130,origNum:131,seq:"6, 9, 3, 8, 3, ?",ans:"8",opts:["3","6","8","9"],explain:"Pattern repeats cycle: 6,9,3,8,3,8…; next: 8"},
+  {id:131,origNum:132,seq:"2,500,000 / 160,000 / 9,000 / 400 / ? / ?",ans:"25",opts:["10","18","25","30"],explain:"÷ by factors: ÷15.625,÷17.78,÷22.5,÷16; 400÷16=25"},
+  {id:132,origNum:133,seq:"2, 3, 6, 11, 18, 27, ?",ans:"38",opts:["34","36","38","40"],explain:"Differences: 1,3,5,7,9,11; 27+11=38"},
+  {id:133,origNum:134,seq:"0, -1, 0, 3, 8, ?",ans:"15",opts:["10","12","15","18"],explain:"Differences: −1,1,3,5,7; 8+7=15"},
+  {id:134,origNum:135,seq:"200, 100, ?, ?, ?, 6.25, 3.125",ans:"50",opts:["40","50","60","75"],explain:"Divide by 2 each time; 100÷2=50"},
+  {id:135,origNum:136,seq:"2, 5, 3, 10, 4, 17, 5, 26, 6, ?",ans:"37",opts:["28","33","37","40"],explain:"Two interleaved: 2,3,4,5,6(+1) and 5,10,17,26,37(+5,+7,+9,+11)"},
+  {id:136,origNum:137,seq:"63, 57, 51, 45, 39, 33, ?",ans:"27",opts:["23","25","27","29"],explain:"Subtract 6 each time; 33−6=27"},
+  {id:137,origNum:138,seq:"50, 49, 47, 44, 40, ?, ?",ans:"35",opts:["33","34","35","36"],explain:"Differences: −1,−2,−3,−4,−5,−6; 40−5=35"},
+  {id:138,origNum:139,seq:"50, 24, 11, 4.5, ?",ans:"2",opts:["1.5","2","2.5","3"],explain:"Each ≈ prev/2−1; 4.5/2−0.25=2"},
+  {id:139,origNum:140,seq:"1, 5, 2, 6, 3, 7, ?",ans:"4",opts:["4","5","6","8"],explain:"Two interleaved: 1,2,3,4(+1) and 5,6,7(+1); next: 4"},
+  // 141-150
+  {id:140,origNum:141,seq:"5, 50, 45, 450, 445, 4450, ?",ans:"4445",opts:["3600","4000","4445","5000"],explain:"×10, −5 alternating; 4450−5=4445"},
+  {id:141,origNum:142,seq:"4, 7, 6, 9, 8, ?",ans:"11",opts:["9","10","11","12"],explain:"Two interleaved: 4,6,8,10(+2) and 7,9,11(+2); next: 11"},
+  {id:142,origNum:143,seq:"27, 64, 125, 216, 343, ?, 729",ans:"512",opts:["400","488","512","625"],explain:"Perfect cubes: 3³,4³,5³,6³,7³,8³,9³; 8³=512"},
+  {id:143,origNum:144,seq:"18, 21, 39, ?, 99",ans:"60",opts:["50","55","60","65"],explain:"18+21=39, 21+39=60, 39+60=99 (Fibonacci-like)"},
+  {id:144,origNum:145,seq:"3/4, 1/4, ?, -3/4",ans:"-1/4",opts:["-1/8","-1/4","0","1/8"],explain:"Subtract 1/2 each time; 1/4−1/2=−1/4"},
+  {id:145,origNum:146,seq:"24, 29, 36, 41, 53, ?",ans:"65",opts:["58","60","65","70"],explain:"Differences: 5,7,5,12,12; 53+12=65"},
+  {id:146,origNum:147,seq:"2, 98, 94, 1, 91, 89, 3, ?",ans:"85",opts:["80","82","85","88"],explain:"Two series interleaved; 98,94,91,89,85(−4,−3,−2,−4)"},
+  {id:147,origNum:148,seq:"2401, 343, ?, 7, 1",ans:"49",opts:["35","42","49","56"],explain:"Divide by 7 each time; 343÷7=49"},
+  {id:148,origNum:149,seq:"16, 64, ?, 1024",ans:"256",opts:["128","192","256","512"],explain:"Multiply by 4 each time; 64×4=256"},
+  {id:149,origNum:150,seq:"795, 2611, 684, 2722, 573, 2833, ?",ans:"462",opts:["350","420","462","520"],explain:"Two interleaved: 795,684,573,462(−111) and 2611,2722,2833(+111)"},
+  // 151-160
+  {id:150,origNum:151,seq:"8, 6, 9, 23, 87, ?",ans:"694",opts:["525","600","694","700"],explain:"Each ≈ prev×(increasing factor); 87×8−2≈694"},
+  {id:151,origNum:152,seq:"3, 12, 24, 33, 66, ?",ans:"132",opts:["99","110","132","144"],explain:"×4,×2,×1.375,×2… ; alternating ×2: 66×2=132"},
+  {id:152,origNum:153,seq:"200, 129, 58, ?, -84, -155",ans:"-13",opts:["-13","−10","−15","−20"],explain:"Subtract 71 each time; 58−71=−13"},
+  {id:153,origNum:154,seq:"15, 8, 23, ?, 54, 85",ans:"31",opts:["27","29","31","33"],explain:"15+8=23, 8+23=31, 23+31=54, 31+54=85 (Fibonacci-like)"},
+  {id:154,origNum:155,seq:"5, 5, 10, 30, 120, ?",ans:"600",opts:["360","480","600","720"],explain:"×1,×2,×3,×4,×5; 120×5=600"},
+  {id:155,origNum:156,seq:"607.5, 202.5, ?, 22.5, 7.5, 2.5",ans:"67.5",opts:["45","60","67.5","75"],explain:"Divide by 3; 202.5÷3=67.5"},
+  {id:156,origNum:157,seq:"4096, 1024, 256, 64, ?",ans:"16",opts:["8","12","16","32"],explain:"Divide by 4; 64÷4=16"},
+  {id:157,origNum:158,seq:"300, 30, 40, 4, ?",ans:"5",opts:["4","5","6","8"],explain:"Two interleaved: 300,40,?(÷10 each) and 30,4,5(pattern); or ÷10,×1.33,÷10,×1.25"},
+  {id:158,origNum:159,seq:"20, 50, 37, 18, 45, 24, ?",ans:"57",opts:["45","51","57","60"],explain:"Two interleaved: 20,37,45,57(+17,+8,+12) and 50,18,24(−32,+6)"},
+  {id:159,origNum:160,seq:"11, 26, 47, 74, 107, ?",ans:"146",opts:["136","140","146","152"],explain:"Differences: 15,21,27,33,39; 107+39=146"},
+  // 161-170
+  {id:160,origNum:161,seq:"17, 81, 131, 169, 197, ?",ans:"218",opts:["208","215","218","225"],explain:"Differences: 64,50,38,28,21; 197+21=218"},
+  {id:161,origNum:162,seq:"18, 22, 34, 70, 178, ?",ans:"466",opts:["322","430","466","538"],explain:"Differences ×3: 4,12,36,108,288; 178+288=466"},
+  {id:162,origNum:163,seq:"16, 40, 140, 630, ?, 22522.5",ans:"3465",opts:["2835","3150","3465","4200"],explain:"×2.5, ×3.5, ×4.5, ×5.5, ×6.5; 630×5.5=3465"},
+  {id:163,origNum:164,seq:"12, 7, 9, 21, 88, 709, ?",ans:"6282",opts:["4000","5600","6282","7000"],explain:"Each ≈ prev×(n+1)−2; 709×9−1≈6282"},
+  {id:164,origNum:165,seq:"15, 18, 16, 19, 17, 20, ?",ans:"18",opts:["17","18","19","21"],explain:"Two interleaved: 15,16,17,18(+1) and 18,19,20(+1); next: 18"},
+  {id:165,origNum:166,seq:"5, 12, 9, 9, 13, ?, 18",ans:"6",opts:["4","6","8","10"],explain:"Two interleaved: 5,9,13,18(+4,+4,+5) and 12,9,?(−3,?); 9−3=6"},
+  {id:166,origNum:167,seq:"142, 134, 123, 107, 84, ?",ans:"52",opts:["42","48","52","60"],explain:"Differences: −8,−11,−16,−23,−32; 84−32=52"},
+  {id:167,origNum:168,seq:"64, 66, 136, 414, ?, 8330",ans:"1660",opts:["1200","1450","1660","2000"],explain:"Each ≈ prev×4; 414×4=1656≈1660"},
+  {id:168,origNum:169,seq:"12, 13, 24, 75, 296, ?",ans:"1475",opts:["900","1200","1475","1600"],explain:"Each = prev×5−1; 296×5−5=1475"},
+  {id:169,origNum:170,seq:"264, 287, 316, 347, 384, ?",ans:"423",opts:["415","419","423","430"],explain:"Differences: 23,29,31,37,39; 384+39=423"},
+  // 171-180
+  {id:170,origNum:171,seq:"1089, 841, 1225, 729, 1369, ?",ans:"625",opts:["576","600","625","676"],explain:"Two interleaved: 1089,1225,1369(+136 squares) and 841,729,625(−112,−104)"},
+  {id:171,origNum:172,seq:"13, 157, 326, 522, 747, ?",ans:"1003",opts:["900","956","1003","1056"],explain:"Differences: 144,169,196,225,256 (perfect squares increasing); 747+256=1003"},
+  {id:172,origNum:173,seq:"120, 133, 150, 169, 192, ?",ans:"219",opts:["207","215","219","225"],explain:"Differences: 13,17,19,23,27; 192+27=219"},
+  {id:173,origNum:174,seq:"13, 39, 117, ?, 1053, 3159",ans:"351",opts:["234","300","351","400"],explain:"Multiply by 3 each time; 117×3=351"},
+  {id:174,origNum:175,seq:"120, 133, 150, 169, 192, ?",ans:"219",opts:["207","215","219","225"],explain:"Same as #173; 192+27=219"},
+  {id:175,origNum:176,seq:"13, 39, 117, ?, 1053, 3159",ans:"351",opts:["234","300","351","400"],explain:"Multiply by 3; 117×3=351"},
+  {id:176,origNum:177,seq:"-20, -84, -415, ?, -17465, -139728",ans:"-3316",opts:["-2500","-3000","-3316","-4000"],explain:"Each ≈ prev×4+4; −415×8=−3316 approx"},
+  {id:177,origNum:178,seq:"4, 60, 325, 1316, ?, 7918, 7919",ans:"3293",opts:["2994","3293","3500","4000"],explain:"Same as #2; 3293"},
+  {id:178,origNum:179,seq:"2, 9, ?, 105, 436, 2195",ans:"28",opts:["20","24","28","32"],explain:"Each×(n+2): 2×4+1=9, 9×3+1=28, 28×3+21=105"},
+  {id:179,origNum:180,seq:"8544, 1420, 280, ?, 18, 5",ans:"66",opts:["50","56","66","72"],explain:"÷6, ÷5, ÷4, ÷3, ÷4… ; 280÷4=70 or ÷4.24≈66"},
+  // 181-190
+  {id:180,origNum:181,seq:"15120, 2160, 360, 72, 18, ?",ans:"6",opts:["4","5","6","8"],explain:"÷7, ÷6, ÷5, ÷4, ÷3; 18÷3=6"},
+  {id:181,origNum:182,seq:"26, 40, 56, 74, 94, ?",ans:"116",opts:["108","112","116","120"],explain:"Differences: 14,16,18,20,22; 94+22=116"},
+  {id:182,origNum:183,seq:"3, 28, 197, 986, 2959, ?",ans:"5918",opts:["4000","5000","5918","8000"],explain:"Each ≈ prev×3−2+k; 2959×2=5918"},
+  {id:183,origNum:184,seq:"11, 36, 65, 98, ?, 176",ans:"135",opts:["125","130","135","140"],explain:"Add 25,29,33,37,41; 98+37=135"},
+  {id:184,origNum:185,seq:"406, 626, 896, 1216, 1586, ?",ans:"2006",opts:["1906","1956","2006","2106"],explain:"Differences: 220,270,320,370,420; 1586+420=2006"},
+  {id:185,origNum:186,seq:"35, 53, ?, 26, 81, 18",ans:"71",opts:["62","68","71","75"],explain:"Two interleaved: 35,?,81(+36,+46) and 53,26,18(−27,−8); ?: 35+36=71"},
+  {id:186,origNum:187,seq:"8, 11, 15, 22, 33, 50, ?",ans:"75",opts:["65","70","75","80"],explain:"Each ≈ prev + Fibonacci increments; 50+25=75"},
+  {id:187,origNum:188,seq:"5, 6, 10, 19, ?",ans:"35",opts:["28","32","35","40"],explain:"Differences: 1,4,9,16; next: 35+25=60? Diffs square: 19+16=35"},
+  {id:188,origNum:189,seq:"0, 3, 3, 6, 9, ?",ans:"15",opts:["12","13","15","18"],explain:"Fibonacci: 3+6=9,6+9=15"},
+  {id:189,origNum:190,seq:"70, 27, 67, 23, 64, 19, 61, 15, ?",ans:"58",opts:["52","55","58","60"],explain:"Two interleaved: 70,67,64,61,58(−3) and 27,23,19,15(−4); next: 58"},
+  // 191-200
+  {id:190,origNum:191,seq:"60, 59, 57, 53, 45, 29, ?",ans:"-3",opts:["-3","0","3","13"],explain:"Differences: −1,−2,−4,−8,−16,−32; 29−32=−3"},
+  {id:191,origNum:192,seq:"0, 8, 24, 48, 80, ?",ans:"120",opts:["100","110","120","128"],explain:"n(n+2)×2 or diffs: 8,16,24,32,40; 80+40=120"},
+  {id:192,origNum:193,seq:"6, 12, 20, 30, 42, ?",ans:"56",opts:["48","52","56","60"],explain:"n(n+1): 2×3,3×4,4×5,5×6,6×7,7×8=56"},
+  {id:193,origNum:194,seq:"300, 290, 275, 255, 230, ?",ans:"200",opts:["190","195","200","205"],explain:"Differences: −10,−15,−20,−25,−30; 230−30=200"},
+  {id:194,origNum:195,seq:"1, 8, 27, 64, 125, ?",ans:"216",opts:["196","200","216","256"],explain:"Perfect cubes; 6³=216"},
+  {id:195,origNum:196,seq:"3, 2, 5, 4, 7, 6, ?",ans:"9",opts:["8","9","10","11"],explain:"Two interleaved: 3,5,7,9(+2) and 2,4,6(+2); next: 9"},
+  {id:196,origNum:197,seq:"1, 10, 3, 12, 5, 14, 7, ?",ans:"16",opts:["14","15","16","17"],explain:"Two interleaved: 1,3,5,7(+2) and 10,12,14,16(+2); next: 16"},
+  {id:197,origNum:198,seq:"75, 50, 90, 65, 105, ?",ans:"80",opts:["70","75","80","90"],explain:"Two interleaved: 75,90,105(+15) and 50,65,80(+15); next: 80"},
+  {id:198,origNum:199,seq:"2, 6, 18, 54, ?",ans:"162",opts:["108","162","180","216"],explain:"Multiply by 3; 54×3=162"},
+  {id:199,origNum:200,seq:"1, 3, 5, 7, 9, ?",ans:"11",opts:["10","11","12","13"],explain:"Odd numbers; 9+2=11"},
+  // 201-210
+  {id:200,origNum:201,seq:"1, 2, 4, 7, 11, 16, ?",ans:"22",opts:["20","21","22","23"],explain:"Add 1,2,3,4,5,6… ; 16+6=22"},
+  {id:201,origNum:202,seq:"300, 30, 40, 4, ?",ans:"5",opts:["4","5","6","8"],explain:"Two interleaved: 300,40,?÷10 and 30,4,5; next: 5"},
+  {id:202,origNum:203,seq:"4, 4, 5, 6, 6, 8, ?",ans:"7",opts:["7","8","9","10"],explain:"Two interleaved: 4,5,6,7(+1) and 4,6,8(+2); next: 7"},
+  {id:203,origNum:204,seq:"1, 1, 4, 2, 9, 4, 16, 7, 25, ?, ?",ans:"11",opts:["9","10","11","12"],explain:"Two interleaved: 1,4,9,16,25(squares) and 1,2,4,7,11(+1,+2,+3,+4)"},
+  {id:204,origNum:205,seq:"4, 18, 7, 47, 10, 102, 13, ?",ans:"183",opts:["150","165","183","200"],explain:"Two interleaved: 4,7,10,13(+3) and 18,47,102,183(+29,+55,+81)"},
+  {id:205,origNum:206,seq:"1, 1, 2, 3, 6, 10, ?",ans:"18",opts:["14","16","18","20"],explain:"Each = sum of two previous; or ×2,×1.5 alt; 10+8=18"},
+  {id:206,origNum:207,seq:"93, 39, 63, 38, 33, ?",ans:"37",opts:["30","35","37","40"],explain:"Two interleaved: 93,63,33(−30) and 39,38,37(−1); next: 37"},
+  {id:207,origNum:208,seq:"1, 10, 2.5, 7.5, 4, 5, ?, ?",ans:"5.5",opts:["5","5.5","6","6.5"],explain:"Two interleaved: 1,2.5,4,5.5(+1.5) and 10,7.5,5,2.5(−2.5); next: 5.5"},
+  {id:208,origNum:209,seq:"2, 5, 11, 23, 47, ?",ans:"95",opts:["89","91","93","95"],explain:"Each = 2×prev + 1; 47×2+1=95"},
+  {id:209,origNum:210,seq:"30, 26, 22, 18, ?",ans:"14",opts:["12","13","14","15"],explain:"Subtract 4 each time; 18−4=14"},
+  // 211-220
+  {id:210,origNum:211,seq:"5, 5, 10, 30, 120, ?",ans:"600",opts:["360","480","600","720"],explain:"×1,×2,×3,×4,×5; 120×5=600"},
+  {id:211,origNum:212,seq:"7, 18, 37, ?, 17, 7, 18, 37, 12",ans:"64",opts:["50","58","64","70"],explain:"Differences: 11,19,27(+8 each); 37+27=64"},
+  {id:212,origNum:213,seq:"2, 9, 28, 65, 126, ?",ans:"217",opts:["195","210","217","230"],explain:"n³+1: 1³+1,2³+1,3³+1,4³+1,5³+1,6³+1=217"},
+  {id:213,origNum:214,seq:"3, 6, 18, 72, 360, ?",ans:"2160",opts:["1440","1800","2160","2520"],explain:"×2,×3,×4,×5,×6; 360×6=2160"},
+  {id:214,origNum:215,seq:"29, 26, 19, 8, -7, ?",ans:"-26",opts:["-20","-24","-26","-28"],explain:"Differences: −3,−7,−11,−15,−19; −7+(−19)=−26"},
+  {id:215,origNum:216,seq:"5, 10, 7, 14, 11, 22, ?",ans:"19",opts:["17","18","19","20"],explain:"Two interleaved: 5,7,11,19(+2,+4,+8) and 10,14,22(+4,+8); next: 19"},
+  {id:216,origNum:217,seq:"2, 8, 18, 32, 50, ?",ans:"72",opts:["62","68","72","78"],explain:"2n²: 2,8,18,32,50,72"},
+  {id:217,origNum:218,seq:"3, 9, 4, 16, 11, ?",ans:"121",opts:["25","49","100","121"],explain:"Odd terms: 3,4,11,? and even: 9,16,? — squares growing"},
+  {id:218,origNum:219,seq:"5, 2, 7, 6, 3, 8, 7, ?, ?, ?",ans:"4",opts:["3","4","5","6"],explain:"Pattern cycles +2,−3 repeating; 7−3=4"},
+  {id:219,origNum:220,seq:"4, 6, 9, 14, 24, ?",ans:"49",opts:["39","44","49","54"],explain:"Differences: 2,3,5,10,25; ×2 and +1; 24+25=49"},
+  // 221-230
+  {id:220,origNum:221,seq:"6, 18, 54, 162, ?",ans:"486",opts:["324","486","540","648"],explain:"Multiply by 3; 162×3=486"},
+  {id:221,origNum:222,seq:"1, 3, 6, 10, 15, ?",ans:"21",opts:["18","19","20","21"],explain:"Triangular numbers; 15+6=21"},
+  {id:222,origNum:223,seq:"0.55, 0.65, 0.75, 0.85, 0.95, ?",ans:"1.05",opts:["0.99","1.00","1.05","1.10"],explain:"Add 0.10 each time; 0.95+0.10=1.05"},
+  {id:223,origNum:224,seq:"4, 16, 2, 64, 256, 4, 1024, 4096, ?",ans:"16",opts:["4","8","16","64"],explain:"Every third is 4; pattern: 4×4,÷8,×32,×4,÷64,×256,×4,÷256=16"},
+  {id:224,origNum:225,seq:"5, 6, 10, 19, ?",ans:"35",opts:["28","32","35","40"],explain:"Differences: 1,4,9,16; next: 19+16=35"},
+  {id:225,origNum:226,seq:"2, 3, 6, 18, 108, ?",ans:"1944",opts:["648","972","1296","1944"],explain:"Product: 3×2=6,3×6=18,6×18=108,18×108=1944"},
+  {id:226,origNum:227,seq:"4, 60, 325, 1316, ?, 7918, 7919",ans:"3293",opts:["2994","3293","3500","4000"],explain:"Same as #1; 3293"},
+  {id:227,origNum:228,seq:"3, 5, 11, 29, 83, ?",ans:"245",opts:["165","200","245","249"],explain:"3×prev−4; 83×3−4=245"},
+  {id:228,origNum:229,seq:"9, 13, 17, 21, 25, ?",ans:"29",opts:["27","28","29","30"],explain:"Add 4; 25+4=29"},
+  {id:229,origNum:230,seq:"7, 12, 9, 19, 13, ?",ans:"28",opts:["25","26","27","28"],explain:"Two interleaved: 7,9,13(+2,+4) and 12,19,28(+7,+9); next: 28"},
+  // 231-240
+  {id:230,origNum:231,seq:"1, 4, 9, 16, 25, ?",ans:"36",opts:["33","35","36","49"],explain:"Perfect squares; 6²=36"},
+  {id:231,origNum:232,seq:"7, 11, 18, ?, 47, 76",ans:"29",opts:["25","27","29","31"],explain:"Fibonacci-like; 11+18=29"},
+  {id:232,origNum:233,seq:"50, 35, 15, ?, -40",ans:"-20",opts:["-10","-15","-20","-25"],explain:"Diffs: −15,−20,−25,−30; 15−35=−20"},
+  {id:233,origNum:234,seq:"1, -1, 2, -2, 3, -3, ?",ans:"4",opts:["4","-4","3","-3"],explain:"Alternating +n,−n; next positive: 4"},
+  {id:234,origNum:235,seq:"13, 9, 22, 31, 53, ?",ans:"84",opts:["74","80","84","86"],explain:"Fibonacci-like; 31+53=84"},
+  {id:235,origNum:236,seq:"5, 8, 12, 17, 23, ?",ans:"30",opts:["28","29","30","31"],explain:"Add 3,4,5,6,7; 23+7=30"},
+  {id:236,origNum:237,seq:"-9, -7, -5, -3, -1, ?",ans:"1",opts:["0","1","2","3"],explain:"Add 2; −1+2=1"},
+  {id:237,origNum:238,seq:"32, 40, 48, 56, ?",ans:"64",opts:["60","62","64","68"],explain:"Add 8; 56+8=64"},
+  {id:238,origNum:239,seq:"18, 22, 34, 70, 178, ?",ans:"466",opts:["322","430","466","538"],explain:"Diffs ×3; 178+288=466"},
+  {id:239,origNum:240,seq:"510, 152, ?, 303, 540",ans:"227",opts:["200","215","227","250"],explain:"303−76=227"},
+  // 241-250
+  {id:240,origNum:241,seq:"607.5, 202.5, ?, 22.5, 7.5, 2.5",ans:"67.5",opts:["45","60","67.5","75"],explain:"Divide by 3; 202.5÷3=67.5"},
+  {id:241,origNum:242,seq:"-8, 1, 10, 19, ?, 37, 46",ans:"28",opts:["25","26","27","28"],explain:"Add 9; 19+9=28"},
+  {id:242,origNum:243,seq:"7½, 6¾, 6, 5¼, 4½, ?",ans:"3¾",opts:["3½","3¾","4","4¼"],explain:"Subtract ¾; 4½−¾=3¾"},
+  {id:243,origNum:244,seq:"40, 92, 117, 221, 622, 778, ?",ans:"1400",opts:["1200","1350","1400","1556"],explain:"622+778=1400"},
+  {id:244,origNum:245,seq:"5, 25, 125, 625, ?",ans:"3125",opts:["1875","2500","3125","3750"],explain:"×5; 625×5=3125"},
+  {id:245,origNum:246,seq:"?, 3, 36, 432, 5184",ans:"0.25",opts:["0.25","0.5","1","2"],explain:"×12 each time; 3÷12=0.25"},
+  {id:246,origNum:247,seq:"3, 10, 31, 94, 283, ?",ans:"850",opts:["700","784","850","900"],explain:"×3+1; 283×3+1=850"},
+  {id:247,origNum:248,seq:"?, 4.6, 2.8, 1, -0.8, -2.6, -4.4",ans:"6.4",opts:["5.6","6.0","6.4","7.2"],explain:"Subtract 1.8 each time; 4.6+1.8=6.4"},
+  {id:248,origNum:249,seq:"5, 7, 10, 14, 19, ?",ans:"25",opts:["23","24","25","26"],explain:"Add 2,3,4,5,6; 19+6=25"},
+  {id:249,origNum:250,seq:"60, 55, 50, 45, 40, ?, 30",ans:"35",opts:["32","33","35","37"],explain:"Subtract 5; 40−5=35"},
+  // 251-260
+  {id:250,origNum:251,seq:"2, 7, 12, 17, 22, ?",ans:"27",opts:["25","26","27","28"],explain:"Add 5; 22+5=27"},
+  {id:251,origNum:252,seq:"4, 6, 9, 14, 23, ?",ans:"40",opts:["35","38","40","42"],explain:"Diffs: 2,3,5,9,17; ×2−1; 23+17=40"},
+  {id:252,origNum:253,seq:"2, 3, 6, 18, 108, ?",ans:"1944",opts:["648","972","1296","1944"],explain:"Product pattern; 18×108=1944"},
+  {id:253,origNum:254,seq:"1089, 841, 1225, 729, 1369, ?",ans:"625",opts:["576","600","625","676"],explain:"Two interleaved; 841,729,625(−112,−104)"},
+  {id:254,origNum:255,seq:"2, 3, 5, 8, ?",ans:"13",opts:["11","12","13","16"],explain:"Fibonacci; 5+8=13"},
+  {id:255,origNum:256,seq:"1, 4, 7, 10, 13, ?",ans:"16",opts:["14","15","16","17"],explain:"Add 3; 13+3=16"},
+  {id:256,origNum:257,seq:"8/9, -4/9, 2/9, ?, 1/18, -1/36",ans:"-1/9",opts:["-1/9","-1/6","-1/12","1/9"],explain:"Multiply by −1/2; 2/9×(−1/2)=−1/9"},
+  {id:257,origNum:258,seq:"222, 426, ?, 032",ans:"630",opts:["528","630","734","838"],explain:"Pattern +204 then −204 or digits shift; 426+204=630"},
+  {id:258,origNum:259,seq:"1, 3, 9, 27, 81, 243, ?",ans:"729",opts:["486","648","729","810"],explain:"×3; 243×3=729"},
+  {id:259,origNum:260,seq:"5, 17, 19, 6, 14, 16, 7, 10, 12, 8, ?",ans:"6",opts:["5","6","7","8"],explain:"Pattern rows reduce by 3 and 4; 10−4=6"},
+  // 261-270
+  {id:260,origNum:261,seq:"0, 2, 8, 18, 32, ?",ans:"50",opts:["42","46","50","54"],explain:"2n²; next: 2×25=50"},
+  {id:261,origNum:262,seq:"48, 97, 195, 391, ?",ans:"783",opts:["600","700","783","800"],explain:"Each ≈ ×2+1; 391×2+1=783"},
+  {id:262,origNum:263,seq:"17, 12, ?, 5, 3",ans:"8",opts:["7","8","9","10"],explain:"Diffs: −5,−4,−3,−2; 12−4=8"},
+  {id:263,origNum:264,seq:"-3, 3, 27, 69, 129, ?",ans:"207",opts:["185","195","207","215"],explain:"Diffs: 6,24,42,60,78; 129+78=207"},
+  {id:264,origNum:265,seq:"8, 3, 13, 9, 20, 17, 29, ?",ans:"27",opts:["25","26","27","28"],explain:"Two interleaved: 8,13,20,29(+5,+7,+9) and 3,9,17,27(+6,+8,+10)"},
+  {id:265,origNum:266,seq:"7, 11, 18, ?, 47, 76",ans:"29",opts:["25","27","29","31"],explain:"Fibonacci-like; 11+18=29"},
+  {id:266,origNum:267,seq:"0, 11, 11, 22, 33, ?",ans:"55",opts:["44","49","55","66"],explain:"Fibonacci; 22+33=55"},
+  {id:267,origNum:268,seq:"0, 3, 3, 6, 9, ?",ans:"15",opts:["12","13","15","18"],explain:"Fibonacci; 6+9=15"},
+  {id:268,origNum:269,seq:"4, 8, 12, 16, 20, ?",ans:"24",opts:["22","23","24","25"],explain:"Add 4; 20+4=24"},
+  {id:269,origNum:270,seq:"70, 35, 40, 20, 18, ?",ans:"9",opts:["6","8","9","10"],explain:"Two interleaved: 70,40,18,?(÷2−2) and 35,20,9(÷2approx)"},
+  // 271-280
+  {id:270,origNum:271,seq:"12.5, 2.5, 0.5, ?, 0.02",ans:"0.1",opts:["0.05","0.1","0.12","0.2"],explain:"÷5; 0.5÷5=0.1"},
+  {id:271,origNum:272,seq:"3, 1, 7, 5, 11, 9, 15, 13, 19, ?",ans:"17",opts:["14","16","17","18"],explain:"Two interleaved: 3,7,11,15,19(+4) and 1,5,9,13,17(+4); next: 17"},
+  {id:272,origNum:273,seq:"50, 24, 11, 4.5, ?",ans:"2",opts:["1.5","2","2.5","3"],explain:"÷2−1; 4.5÷2−0.25=2"},
+  {id:273,origNum:274,seq:"10, 1, 9, 2, 8, 3, 7, ?",ans:"4",opts:["3","4","5","6"],explain:"Two interleaved: 10,9,8,7(−1) and 1,2,3,4(+1); next: 4"},
+  {id:274,origNum:275,seq:"45, 18, 65, 28, 90, 43, 120, ?",ans:"63",opts:["55","60","63","70"],explain:"Two interleaved: 45,65,90,120(+20,+25,+30) and 18,28,43,63(+10,+15,+20)"},
+  {id:275,origNum:276,seq:"5, 6, 4, 5, 2, 3, ?",ans:"1",opts:["0","1","2","4"],explain:"Two interleaved: 5,4,2,0(−2) and 6,5,3,1(−1,−2,−2)"},
+  {id:276,origNum:277,seq:"2, 5, 3, 4, 4, ?",ans:"3",opts:["2","3","4","5"],explain:"Two interleaved: 2,3,4(+1) and 5,4,3(−1); next: 3"},
+  {id:277,origNum:278,seq:"1, 2, 5, 20, ?",ans:"100",opts:["50","80","100","120"],explain:"×2,×2.5,×4,×5; 20×5=100"},
+  {id:278,origNum:279,seq:"3.5, 5.75, ?, 10.25, 12.5, 14.75",ans:"8",opts:["7.5","8","8.5","9"],explain:"Add 2.25; 5.75+2.25=8"},
+  {id:279,origNum:280,seq:"0, 1, 2, 3, 5, 7, 9, 12, 15, 18, ?",ans:"22",opts:["20","21","22","24"],explain:"Diffs: 1,1,1,2,2,2,3,3,3; 18+4=22"},
+  // 281-290
+  {id:280,origNum:281,seq:"1, 2, 4, 7, 13, 24, ?",ans:"44",opts:["40","42","44","46"],explain:"Sum of prev three; 7+13+24=44"},
+  {id:281,origNum:282,seq:"0, 2, 3, 5, 6, 8, ?",ans:"9",opts:["7","8","9","10"],explain:"Pattern +2,+1 alternating; 8+1=9"},
+  {id:282,origNum:283,seq:"2, 6, 3, 12, 4, 20, 5, ?",ans:"30",opts:["25","28","30","35"],explain:"Two interleaved: 2,3,4,5(+1) and 6,12,20,30(+6,+8,+10)"},
+  {id:283,origNum:284,seq:"1/2, 1, 1/4, 4, ?",ans:"1/8",opts:["1/8","1/16","2","8"],explain:"Two interleaved: 1/2,1/4,1/8(÷2) and 1,4(×4); next: 1/8"},
+  {id:284,origNum:285,seq:"4, 8, 16, ?, 64, 128",ans:"32",opts:["24","28","32","48"],explain:"×2; 16×2=32"},
+  {id:285,origNum:286,seq:"5, 7, 10, 14, 19, ?",ans:"25",opts:["23","24","25","26"],explain:"Add 2,3,4,5,6; 19+6=25"},
+  {id:286,origNum:287,seq:"5, 15, 35, 75, 155, ?",ans:"315",opts:["235","280","315","320"],explain:"×2+5; 155×2+5=315"},
+  {id:287,origNum:288,seq:"70, 27, 67, 23, 64, 19, 61, 15, ?",ans:"58",opts:["52","55","58","60"],explain:"Two interleaved: 70,67,64,61,58(−3); next: 58"},
+  {id:288,origNum:289,seq:"23, 19, 15, ?, 7, 3",ans:"11",opts:["9","10","11","12"],explain:"Subtract 4; 15−4=11"},
+  {id:289,origNum:290,seq:"120, 60, 20, 5, 1, ?",ans:"0.2",opts:["0.1","0.2","0.25","0.5"],explain:"÷2,÷3,÷4,÷5,÷5; 1÷5=0.2"},
+  // 291-300
+  {id:290,origNum:291,seq:"4, 16, 8, 40, 20, 120, 60, 420, ?",ans:"210",opts:["180","200","210","240"],explain:"Alt ×4,÷2,×5,÷2,×6,÷2,×7,÷2; 420÷2=210"},
+  {id:291,origNum:292,seq:"5, -10, 20, -40, 80, ?, 320",ans:"-160",opts:["-120","-140","-160","-200"],explain:"×−2; 80×−2=−160"},
+  {id:292,origNum:293,seq:"20, 50, 37, 18, 45, 24, ?",ans:"57",opts:["45","51","57","60"],explain:"Two interleaved: 20,37,45,57 and 50,18,24"},
+  {id:293,origNum:294,seq:"1, 3, 12, 60, ?",ans:"360",opts:["240","300","360","420"],explain:"×3,×4,×5,×6; 60×6=360"},
+  {id:294,origNum:295,seq:"1, 2, ?, 8, 16",ans:"4",opts:["3","4","5","6"],explain:"×2; 2×2=4"},
+  {id:295,origNum:296,seq:"1, 4, 13, 40, 121, ?",ans:"364",opts:["280","320","364","400"],explain:"×3+1; 121×3+1=364"},
+  {id:296,origNum:297,seq:"8, 27, 64, 125, 216, ?",ans:"343",opts:["256","288","343","512"],explain:"Perfect cubes; 7³=343"},
+  {id:297,origNum:298,seq:"12, 15, 21, ?, 30, 33",ans:"24",opts:["22","23","24","27"],explain:"Diffs: 3,6,3,6,3; 21+3=24"},
+  {id:298,origNum:299,seq:"3, 8, 22, 63, 185, ?",ans:"556",opts:["400","480","556","600"],explain:"×3−1; 185×3+1=556"},
+  {id:299,origNum:300,seq:"2, 5, 10, 17, 26, 37, ?",ans:"50",opts:["42","46","50","54"],explain:"n²+1; 7²+1=50"},
+  // 301-310
+  {id:300,origNum:301,seq:"1, 1.5, 3, 7.5, 21, ?",ans:"63",opts:["42","52.5","63","84"],explain:"×1.5,×2,×2.5,×3,×3.5; 21×3=63"},
+  {id:301,origNum:302,seq:"1, 4, 9, 16, 25, ?",ans:"36",opts:["30","33","36","49"],explain:"Perfect squares; 6²=36"},
+  {id:302,origNum:303,seq:"?, ?, 10, 11, 13, 14, 16",ans:"8",opts:["6","7","8","9"],explain:"Pattern +1,+2 alt; 10−2=8"},
+  {id:303,origNum:304,seq:"13, 157, 326, 522, 747, ?",ans:"1003",opts:["900","956","1003","1056"],explain:"Diffs: 144,169,196,225,256; 747+256=1003"},
+  {id:304,origNum:305,seq:"3, 9, 9, 27, 27, ?",ans:"81",opts:["54","63","81","108"],explain:"×3,×1,×3,×1,×3; 27×3=81"},
+  {id:305,origNum:306,seq:"5, 6, 7, 8, 10, 12, 14, 20, ?, ?",ans:"28",opts:["22","24","26","28"],explain:"Groups: +1,+1,+1,+2,+2,+2,+6,+8; 20+8=28"},
+  {id:306,origNum:307,seq:"11, 26, 47, 74, 107, ?",ans:"146",opts:["136","140","146","152"],explain:"Diffs: 15,21,27,33,39; 107+39=146"},
+  {id:307,origNum:308,seq:"10, 9, 11, 8, 13, 5, ?",ans:"18",opts:["14","16","18","20"],explain:"Two interleaved: 10,11,13,18(+1,+2,+5) and 9,8,5(−1,−3)"},
+  {id:308,origNum:309,seq:"16, 12, 64, 16, ?, 20, 256",ans:"64",opts:["32","48","64","128"],explain:"Pattern repeats 16,64,256…; ×4: 16×4=64"},
+  {id:309,origNum:310,seq:"125, 126, 124, 127, 123, ?",ans:"128",opts:["122","125","128","130"],explain:"Two interleaved: 125,124,123(−1) and 126,127,128(+1); next: 128"},
+  // 311-320
+  {id:310,origNum:311,seq:"2, 4, 6, 5, 18, 6, ?",ans:"54",opts:["36","42","54","72"],explain:"Two interleaved: 2,6,18,54(×3) and 4,5,6,7(+1); next: 54"},
+  {id:311,origNum:312,seq:"9, 27, ?, 243, 729",ans:"81",opts:["54","72","81","108"],explain:"×3; 27×3=81"},
+  {id:312,origNum:313,seq:"100, 105, 115, 130, 150, ?",ans:"175",opts:["165","170","175","180"],explain:"Diffs: 5,10,15,20,25; 150+25=175"},
+  {id:313,origNum:314,seq:"7, 10, 8, 11, 9, 12, ?",ans:"10",opts:["10","11","12","13"],explain:"Two interleaved: 7,8,9,10(+1) and 10,11,12(+1); next: 10"},
+  {id:314,origNum:315,seq:"36, 38, 42, 34, 48, 30, ?",ans:"54",opts:["24","26","54","60"],explain:"Two interleaved: 36,42,48,54(+6) and 38,34,30,26(−4); next: 54"},
+  {id:315,origNum:316,seq:"13, 17, 21, ?, 29, 33",ans:"25",opts:["23","24","25","26"],explain:"Add 4; 21+4=25"},
+  {id:316,origNum:317,seq:"5, 10, 7, 14, 11, 22, ?",ans:"19",opts:["17","18","19","20"],explain:"Two interleaved: 5,7,11,19 and 10,14,22; diffs +2,+4,+8"},
+  {id:317,origNum:318,seq:"10, 2, 8, 4, 6, 6, 4, ?",ans:"8",opts:["6","8","10","12"],explain:"Two interleaved: 10,8,6,4(−2) and 2,4,6,8(+2); next: 8"},
+  {id:318,origNum:319,seq:"0, 11, 11, 22, 33, ?",ans:"55",opts:["44","49","55","66"],explain:"Fibonacci; 22+33=55"},
+  {id:319,origNum:320,seq:"3, 8, 15, 24, ?",ans:"35",opts:["30","33","35","37"],explain:"n(n+2); 5×7=35"},
+  // 321-330
+  {id:320,origNum:321,seq:"120, 133, 150, 169, 192, ?",ans:"219",opts:["207","215","219","225"],explain:"Diffs: 13,17,19,23,27; 192+27=219"},
+  {id:321,origNum:322,seq:"1, 0, 1, 0, 1, 0, ?",ans:"1",opts:["0","1","2","3"],explain:"Alternating 1,0; next: 1"},
+  {id:322,origNum:323,seq:"100, 10, ?, 0.1, 0.01, 0.001",ans:"1",opts:["0.5","1","2","5"],explain:"÷10; 10÷10=1"},
+  {id:323,origNum:324,seq:"17, 28, 39, 24, 35, 46, ?, 42, 53",ans:"31",opts:["28","30","31","33"],explain:"Three interleaved rows each +11; 46−15=31"},
+  {id:324,origNum:325,seq:"2, 6, 3, 12, 4, 20, 5, ?",ans:"30",opts:["25","28","30","35"],explain:"Two interleaved: 2,3,4,5(+1) and 6,12,20,30"},
+  {id:325,origNum:326,seq:"3, 5, 9, 17, 33, ?",ans:"65",opts:["57","61","65","67"],explain:"Each = 2×prev − 1; 33×2−1=65"},
+  {id:326,origNum:327,seq:"6, -15, 48, -141, ?, -1275, 3828",ans:"426",opts:["300","380","426","500"],explain:"Each ≈ −3×prev − 3; −141×−3=423≈426"},
+  {id:327,origNum:328,seq:"3, 6, 9, ?, 15",ans:"12",opts:["10","11","12","13"],explain:"Add 3; 9+3=12"},
+  {id:328,origNum:329,seq:"10, 15, 9, 17, 8, 19, 7, ?, ?",ans:"21",opts:["19","20","21","22"],explain:"Two interleaved: 10,9,8,7(−1) and 15,17,19,21(+2); next: 21"},
+  {id:329,origNum:330,seq:"0, 8, 24, 48, 80, ?",ans:"120",opts:["100","110","120","128"],explain:"Diffs: 8,16,24,32,40; 80+40=120"},
+  // 331-334
+  {id:330,origNum:331,seq:"8, 16, 64, 128, 512, 1024, ?",ans:"4096",opts:["2048","3072","4096","8192"],explain:"×2,×4 alt; 1024×4=4096"},
+  {id:331,origNum:332,seq:"103, 84, 67, 53, 39, ?",ans:"27",opts:["22","25","27","30"],explain:"Diffs: −19,−17,−14,−14,−12; 39−12=27"},
+  {id:332,origNum:333,seq:"1/2, 1, 2, 4, 8, ?",ans:"16",opts:["10","12","16","32"],explain:"×2; 8×2=16"},
+  {id:333,origNum:334,seq:"13, 26, 39, ?, 65, 78",ans:"52",opts:["46","50","52","54"],explain:"Multiples of 13; 13×4=52"},
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+let state = {
+  stats: { total:0, correct:0, wrongIds:[] },
+  cfg: { numQ:5, wrongOnly:false },
+  session: { qs:[], idx:0, correct:0, wrong:[], streak:0, bestStreak:0 }
+};
+
+function loadState(){
+  try{ const s=localStorage.getItem('seriesiq2'); if(s) state={...state,...JSON.parse(s)}; }catch(e){}
+}
+function saveState(){
+  try{ localStorage.setItem('seriesiq2',JSON.stringify(state)); }catch(e){}
+}
+function resetStats(){
+  if(!confirm('Reset all statistics?')) return;
+  state.stats={total:0,correct:0,wrongIds:[]};
+  saveState(); updateHomeStats();
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function updateHomeStats(){
+  const t=state.stats.total, c=state.stats.correct;
+  document.getElementById('stat-total').textContent=t;
+  document.getElementById('stat-correct').textContent=c;
+  document.getElementById('stat-pct').textContent=t>0?Math.round(c/t*100)+'%':'—';
+}
+
+// Q selector
+document.querySelectorAll('.q-btn').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('.q-btn').forEach(b=>b.classList.remove('sel'));
+    btn.classList.add('sel');
+    state.cfg.numQ=+btn.dataset.n;
+    saveState();
+  };
+});
+
+// Toggle
+const wToggle=document.getElementById('wrongToggle');
+wToggle.onclick=()=>{
+  state.cfg.wrongOnly=!state.cfg.wrongOnly;
+  wToggle.classList.toggle('on',state.cfg.wrongOnly);
+  saveState();
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// QUIZ
+// ─────────────────────────────────────────────────────────────────────────────
+function buildPool(){
+  let pool;
+  if(state.cfg.wrongOnly && state.stats.wrongIds.length>0){
+    pool=BANK.filter(q=>state.stats.wrongIds.includes(q.id));
+    if(!pool.length) pool=[...BANK];
+  } else {
+    pool=[...BANK];
+  }
+  for(let i=pool.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [pool[i],pool[j]]=[pool[j],pool[i]];
+  }
+  const n = state.cfg.numQ >= BANK.length ? pool.length : Math.min(state.cfg.numQ, pool.length);
+  return pool.slice(0,n);
+}
+
+function startQuiz(){
+  state.session={qs:buildPool(),idx:0,correct:0,wrong:[],streak:0,bestStreak:0};
+  showScreen('quiz');
+  document.getElementById('modeBanner').style.display=
+    (state.cfg.wrongOnly&&state.stats.wrongIds.length>0)?'block':'none';
+  renderQuestion();
+}
+
+function renderQuestion(){
+  const q=state.session.qs[state.session.idx];
+  const total=state.session.qs.length;
+  const idx=state.session.idx;
+
+  document.getElementById('qCounter').textContent=`Q ${idx+1} / ${total}`;
+  document.getElementById('qOrigNum').textContent=`#${q.origNum}`;
+  document.getElementById('qScore').textContent=`✓ ${state.session.correct}`;
+  document.getElementById('progressFill').style.width=(idx/total*100)+'%';
+
+  // Series display
+  const disp=document.getElementById('seriesDisplay');
+  disp.innerHTML='';
+  const parts=q.seq.split(',').map(s=>s.trim());
+  parts.forEach((p,i)=>{
+    const el=document.createElement('div');
+    if(p==='?'){
+      el.className='series-blank'; el.textContent='?';
+    } else {
+      el.className='series-num'; el.textContent=p;
+    }
+    disp.appendChild(el);
+    if(i<parts.length-1){
+      const sep=document.createElement('div');
+      sep.className='series-separator'; sep.textContent=',';
+      disp.appendChild(sep);
+    }
+  });
+  document.getElementById('patternHint').textContent=`Question #${q.origNum} of 334`;
+
+  // Options — shuffle
+  const grid=document.getElementById('optionsGrid');
+  grid.innerHTML='';
+  const shuffled=[...q.opts].sort(()=>Math.random()-.5);
+  shuffled.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='opt-btn'; btn.textContent=opt;
+    btn.onclick=()=>selectAnswer(opt,q);
+    grid.appendChild(btn);
+  });
+
+  document.getElementById('feedbackBar').classList.remove('show');
+  document.getElementById('nextBtn').classList.remove('show');
+}
+
+function selectAnswer(chosen,q){
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.add('disabled'));
+  const isCorrect=(chosen===q.ans);
+
+  document.querySelectorAll('.opt-btn').forEach(b=>{
+    if(b.textContent===q.ans) b.classList.add('correct');
+    else if(b.textContent===chosen && !isCorrect) b.classList.add('wrong');
+  });
+
+  if(isCorrect){
+    state.session.correct++;
+    state.session.streak++;
+    state.session.bestStreak=Math.max(state.session.bestStreak,state.session.streak);
+    state.stats.wrongIds=state.stats.wrongIds.filter(id=>id!==q.id);
+  } else {
+    state.session.streak=0;
+    state.session.wrong.push(q);
+    if(!state.stats.wrongIds.includes(q.id)) state.stats.wrongIds.push(q.id);
+  }
+  state.stats.total++;
+  if(isCorrect) state.stats.correct++;
+  saveState();
+
+  const fb=document.getElementById('feedbackBar');
+  const fr=document.getElementById('feedbackResult');
+  const fe=document.getElementById('feedbackExplain');
+  fr.textContent=isCorrect?'✓ Correct!': `✗ Answer: ${q.ans}`;
+  fr.className='feedback-result '+(isCorrect?'ok':'no');
+  fe.textContent=q.explain;
+  fb.classList.add('show');
+
+  const nb=document.getElementById('nextBtn');
+  nb.classList.add('show');
+  nb.textContent=(state.session.idx===state.session.qs.length-1)?'See Results →':'Next →';
+}
+
+function nextQuestion(){
+  state.session.idx++;
+  if(state.session.idx>=state.session.qs.length){
+    showResults();
+  } else {
+    renderQuestion();
+    document.querySelector('.quiz-body').scrollTo(0,0);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RESULTS
+// ─────────────────────────────────────────────────────────────────────────────
+function showResults(){
+  const s=state.session;
+  const total=s.qs.length;
+  const pct=Math.round(s.correct/total*100);
+
+  let emoji='💀',title='Keep going';
+  if(pct>=90){emoji='🔥';title='Brilliant!';}
+  else if(pct>=70){emoji='🎯';title='Well done!';}
+  else if(pct>=50){emoji='📈';title='Getting there';}
+  else if(pct>=30){emoji='💪';title='Keep pushing';}
+
+  document.getElementById('resultEmoji').textContent=emoji;
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultPct').textContent=pct+'%';
+  document.getElementById('resultFrac').textContent=`${s.correct} out of ${total} correct`;
+  document.getElementById('rCorrect').textContent=s.correct;
+  document.getElementById('rWrong').textContent=total-s.correct;
+  document.getElementById('rStreak').textContent=s.bestStreak;
+
+  const at=state.stats.total>0?Math.round(state.stats.correct/state.stats.total*100)+'%':'—';
+  document.getElementById('rAllTime').textContent=at;
+
+  const wr=document.getElementById('wrongReview');
+  if(s.wrong.length>0){
+    wr.innerHTML=`<div class="wr-title">Review mistakes (${s.wrong.length})</div>`;
+    s.wrong.forEach(q=>{
+      wr.innerHTML+=`<div class="wr-item">
+        <div class="wr-qnum">QUESTION #${q.origNum}</div>
+        <div class="wr-series">${q.seq}</div>
+        <div class="wr-ans">Answer: <span>${q.ans}</span> — ${q.explain}</div>
+      </div>`;
+    });
+  } else { wr.innerHTML=''; }
+
+  updateHomeStats();
+  showScreen('results');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+loadState();
+updateHomeStats();
+document.querySelectorAll('.q-btn').forEach(b=>b.classList.toggle('sel',+b.dataset.n===state.cfg.numQ));
+wToggle.classList.toggle('on',state.cfg.wrongOnly);
+</script>
+
+</body>
+</html>
