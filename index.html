@@ -117,6 +117,21 @@
   .btn-ghost{padding:18px;background:transparent;border:1.5px solid var(--border);border-radius:var(--radius);color:var(--muted);font-family:'Courier New',Courier,monospace;font-size:13px;cursor:pointer;letter-spacing:1px;transition:border-color .2s}
   .btn-ghost:active{border-color:var(--accent);color:var(--text)}
 
+
+  /* TIMER */
+  .timer-ring-wrap{display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .timer-ring{position:relative;width:64px;height:64px}
+  .timer-ring svg{transform:rotate(-90deg)}
+  .timer-ring circle{fill:none;stroke-width:5;stroke-linecap:round}
+  .timer-ring .bg{stroke:var(--border)}
+  .timer-ring .fg{stroke:var(--accent);transition:stroke-dashoffset 1s linear,stroke .5s}
+  .timer-ring .fg.warn{stroke:var(--yellow)}
+  .timer-ring .fg.danger{stroke:var(--red)}
+  .timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:Georgia,'Times New Roman',serif;font-size:20px;font-weight:700;color:var(--text)}
+  .timer-num.warn{color:var(--yellow)}
+  .timer-num.danger{color:var(--red)}
+  .timer-expired{display:none;background:rgba(255,77,109,.12);border:1px solid var(--red);border-radius:10px;padding:8px 16px;font-size:12px;color:var(--red);text-align:center;margin-bottom:12px;letter-spacing:1px}
+  .timer-expired.show{display:block}
   @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
@@ -131,7 +146,7 @@
 ```
 <div class="logo-title">คู่หูสุดแกร่ง</div>
 <div class="logo-sub">ฝึกลำดับตัวเลข</div>
-<div class="logo-badge">✦ SULLY ACADEMY · 334 ข้อ ✦</div>
+<div class="logo-badge">✦ 334 ข้อ ✦</div>
 
 <div class="stat-strip">
   <div class="stat-box"><div class="stat-num" id="stat-total">0</div><div class="stat-lbl">Played</div></div>
@@ -175,7 +190,17 @@
   </div>
   <div class="quiz-body">
     <div id="modeBanner" class="mode-banner" style="display:none">⚡ Wrong-answers mode</div>
-    <div class="q-label">Find the missing number</div>
+    <div class="timer-ring-wrap">
+      <div class="timer-ring">
+        <svg width="64" height="64" viewBox="0 0 64 64">
+          <circle class="bg" cx="32" cy="32" r="28"/>
+          <circle class="fg" id="timerArc" cx="32" cy="32" r="28" stroke-dasharray="175.93" stroke-dashoffset="0"/>
+        </svg>
+        <div class="timer-num" id="timerNum">15</div>
+      </div>
+    </div>
+    <div class="timer-expired" id="timerExpired">⏱ หมดเวลา!</div>
+    <div class="q-label">หาตัวเลขที่หายไป</div>
     <div class="series-display">
       <div class="series-numbers" id="seriesDisplay"></div>
       <div class="pattern-hint" id="patternHint"></div>
@@ -212,7 +237,7 @@
 
 <script>
 // ─────────────────────────────────────────────────────────────────────────────
-// QUESTION BANK — 334 questions from Sully Academy "Ultimate Series Number"
+// QUESTION BANK — 334 questions
 // Format: { id, seq (display string), ans (correct answer as string),
 //           opts [4 strings], explain, origNum }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -666,6 +691,78 @@ function startQuiz(){
   renderQuestion();
 }
 
+
+// ─── TIMER ────────────────────────────────────────────────────────────────────
+const TIMER_SEC = 15;
+const CIRCUMFERENCE = 2 * Math.PI * 28; // 175.93
+let timerInterval = null;
+let timerLeft = TIMER_SEC;
+
+function startTimer(q) {
+  clearInterval(timerInterval);
+  timerLeft = TIMER_SEC;
+  updateTimerUI(timerLeft);
+  document.getElementById('timerExpired').classList.remove('show');
+
+  timerInterval = setInterval(() => {
+    timerLeft--;
+    updateTimerUI(timerLeft);
+    if (timerLeft <= 0) {
+      clearInterval(timerInterval);
+      timeExpired(q);
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+}
+
+function updateTimerUI(t) {
+  const arc = document.getElementById('timerArc');
+  const num = document.getElementById('timerNum');
+  const frac = t / TIMER_SEC;
+  arc.style.strokeDashoffset = CIRCUMFERENCE * (1 - frac);
+  num.textContent = t;
+
+  arc.className = 'fg';
+  num.className = 'timer-num';
+  if (t <= 5) {
+    arc.classList.add('danger');
+    num.classList.add('danger');
+  } else if (t <= 8) {
+    arc.classList.add('warn');
+    num.classList.add('warn');
+  }
+}
+
+function timeExpired(q) {
+  // treat as wrong answer
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.add('disabled'));
+  document.querySelectorAll('.opt-btn').forEach(b => {
+    if (b.textContent === q.ans) b.classList.add('correct');
+  });
+
+  state.session.streak = 0;
+  state.session.wrong.push(q);
+  if (!state.stats.wrongIds.includes(q.id)) state.stats.wrongIds.push(q.id);
+  state.stats.total++;
+  saveState();
+
+  document.getElementById('timerExpired').classList.add('show');
+  const fb = document.getElementById('feedbackBar');
+  const fr = document.getElementById('feedbackResult');
+  const fe = document.getElementById('feedbackExplain');
+  fr.textContent = `✗ เฉลย: ${q.ans}`;
+  fr.className = 'feedback-result no';
+  fe.textContent = q.explain;
+  fb.classList.add('show');
+
+  const nb = document.getElementById('nextBtn');
+  nb.classList.add('show');
+  nb.textContent = (state.session.idx === state.session.qs.length - 1) ? 'ดูผล →' : 'ข้อถัดไป →';
+}
+
 function renderQuestion(){
   const q=state.session.qs[state.session.idx];
   const total=state.session.qs.length;
@@ -709,9 +806,11 @@ function renderQuestion(){
 
   document.getElementById('feedbackBar').classList.remove('show');
   document.getElementById('nextBtn').classList.remove('show');
+  startTimer(q);
 }
 
 function selectAnswer(chosen,q){
+  stopTimer();
   document.querySelectorAll('.opt-btn').forEach(b=>b.classList.add('disabled'));
   const isCorrect=(chosen===q.ans);
 
@@ -744,10 +843,11 @@ function selectAnswer(chosen,q){
 
   const nb=document.getElementById('nextBtn');
   nb.classList.add('show');
-  nb.textContent=(state.session.idx===state.session.qs.length-1)?'See Results →':'Next →';
+  nb.textContent=(state.session.idx===state.session.qs.length-1)?'ดูผล →':'ข้อถัดไป →';
 }
 
 function nextQuestion(){
+  stopTimer();
   state.session.idx++;
   if(state.session.idx>=state.session.qs.length){
     showResults();
